@@ -1,6 +1,5 @@
 package com.github.fantastic3.metacritic.api;
 
-import com.github.fantastic3.metacritic.Constants;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -8,14 +7,24 @@ import com.squareup.okhttp.Response;
 import java.io.IOException;
 
 public class HeadersInterceptor implements Interceptor {
+    private static final String API_KEY   = "pBAqDZQ369msh8AOeHJspADQSGOKp1Xh4j6jsnynrcvAJmEKoS";
+    private static final long   MAX_AGE   = 3600;
+    private static final long   MAX_STALE = 3600;
+
     @Override
     public Response intercept(Chain chain) throws IOException {
         final Request originalRequest = chain.request();
         final Request requestWithHeaders = originalRequest.newBuilder()
                                                           .header("Accept", "application/json")
-                                                          .header("X-Mashape-Key", Constants.API_KEY)
+                                                          .header("X-Mashape-Key", API_KEY)
                                                           .method(originalRequest.method(), originalRequest.body())
                                                           .build();
-        return chain.proceed(requestWithHeaders);
+        Response originalResponse = chain.proceed(requestWithHeaders);
+
+        return originalResponse.newBuilder().header("Cache-Control",
+                                                    String.format(
+                                                            "max-age=%d, max-stale=%d",
+                                                            MAX_AGE,
+                                                            MAX_STALE)).build();
     }
 }
